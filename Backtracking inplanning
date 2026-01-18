@@ -1,0 +1,56 @@
+def is_valid(candidate_session, schedule):
+    """
+    Hulpfunctie: Controleert of de kandidaat-sessie botst met de huidige planning.
+    Regels:
+    1. Een trainer kan niet op 2 plekken tegelijk zijn (zelfde tijd).
+    2. Een veld kan niet dubbel geboekt zijn (zelfde tijd).
+    """
+    for session in schedule:
+        # Als het tijdslot hetzelfde is...
+        if session.time_slot == candidate_session.time_slot:
+            # ... mag de trainer niet hetzelfde zijn
+            if session.trainer == candidate_session.trainer:
+                return False
+            # ... en het veld mag niet hetzelfde zijn
+            if session.field == candidate_session.field:
+                return False
+    return True
+
+def plan_trainings(teams, i, schedule, trainers, fields, timeslots):
+    """
+    De recursieve backtracking functie.
+    """
+    # --- 1. STOPCONDITIE (Base Case) ---
+    # Als i gelijk is aan het aantal teams, hebben we voor elk team een plekje gevonden.
+    if i == len(teams):
+        return True
+
+    current_team = teams[i]
+
+    # --- 2. PROBEER ALLE COMBINATIES ---
+    # We itereren door alle opties (Brute Force aanpak met backtracking)
+    for time in timeslots:
+        for trainer in trainers:
+            for field in fields:
+                
+                # Maak een tijdelijk object aan
+                new_session = Session(current_team, trainer, field, time)
+
+                # --- 3. CONTROLEER GELDIGHEID ---
+                if is_valid(new_session, schedule):
+                    
+                    # Voeg toe (DO)
+                    schedule.append(new_session)
+
+                    # --- 4. RECURSIE ---
+                    # Probeer nu het volgende team (i + 1) in te plannen
+                    if plan_trainings(teams, i + 1, schedule, trainers, fields, timeslots):
+                        return True # Succes! Geef het door naar boven.
+
+                    # --- 5. BACKTRACKING (UNDO) ---
+                    # Als we hier komen, liep de recursie vast (return False).
+                    # We moeten de laatste sessie dus weer verwijderen en de volgende lus proberen.
+                    schedule.pop()
+
+    # Als we alle loops door zijn en niets werkte voor dit team:
+    return False

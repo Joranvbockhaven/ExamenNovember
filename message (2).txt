@@ -1,0 +1,130 @@
+import csv
+
+class Node:
+    def __init__(self, task_name:str,duration:int,priority:int ):
+        self.taskname = task_name
+        self.duration = duration
+        self.priority = priority
+        self.next = None
+
+class Linked_list:
+    def __init__(self):
+        self.head = None
+        self.tail = None
+        self.size = 0
+
+    def add_task(self, task_name, duration, priority):
+        if self.size == 0:
+            self.head = self.tail = Node(task_name,duration,priority)
+            self.size = 1
+        else:
+            self.tail.next = Node(task_name,duration,priority)
+            self.tail = self.tail.next
+            self.size += 1
+
+    def remove_task(self, task_name):
+        if self.size == 0:
+            return None
+        else:
+            current = self.head
+            if task_name == self.head.taskname:
+                self.head = self.head.next
+                self.size -= 1
+                if self.size == 0:
+                    self.tail = None
+            elif self.tail.taskname == task_name:
+                for i in range(1,self.size-1):
+                    current = current.next
+                self.tail = current
+                self.size -= 1
+                current.next = None
+            else:
+                while current.next is not None and current.next.taskname != task_name:
+                    current = current.next
+                if current.next is not None and current.next.taskname == task_name:
+                    current.next = current.next.next
+                    self.size -= 1
+
+    def display_tasks(self):
+        current = self.head
+        while current is not None:
+            print(current.taskname,current.duration,current.priority)
+            current = current.next
+
+    def find_task(self, task_name):
+        if self.size == 0:
+            return None
+        else:
+            current = self.head
+            while current is not None:
+                if current.taskname == task_name:
+                    return current.taskname, current.duration, current.priority
+                current = current.next
+        return None
+
+    def calculate_total_duration(self):
+        current = self.head
+        total_duration = 0
+        while current    is not None:
+            total_duration += current.duration
+            current = current.next
+        return total_duration
+
+    def read_tasks_from_csv(self, file_path):
+        input_file = open(file_path,'r')
+        lijst = csv.reader(input_file, delimiter=',')
+        next(lijst)
+        for line in lijst:
+            self.add_task(line[0], int(line[1]), int(line[2]))
+        input_file.close()
+
+    def sorted_insert_by_duration(self, head, node):
+        current = head
+        if head is None:
+            head = node
+            node.next = None
+            return head
+        elif head.duration > node.duration:
+            node.next = head
+            head = node
+            return head
+        while current.next is not None and current.next.duration < node.duration:
+            current = current.next
+        node.next = current.next
+        current.next = node
+        return head
+
+    def reorder_tasks_by_priority(self):
+        sorted_head = None
+        current = self.head
+        while current is not None:
+            temp = current.next
+            sorted_head = self.sorted_insert_by_duration(sorted_head, current)
+            current = temp
+        self.head = sorted_head
+
+    def sorted_insert_by_priority_duration(self, head, node):
+        current = head
+        if head is None:
+            head = node
+            node.next = None
+            return head
+        elif (node.priority <= head.priority and node.duration < head.duration) or (node.priority < head.priority):
+            node.next = head
+            head = node
+            return head
+        else:
+            while current.next is not None and ((current.next.priority <= node.priority and current.next.duration < node.duration)or(current.next.priority < node.priority)):
+                current = current.next
+        node.next = current.next
+        current.next = node
+        return head
+
+    def reorder_tasks_by_priority_duration(self):
+        sorted_head = None
+        current = self.head
+        while current is not None:
+            temp = current.next
+            sorted_head = self.sorted_insert_by_priority_duration(sorted_head, current)
+            current = temp
+        self.head = sorted_head
